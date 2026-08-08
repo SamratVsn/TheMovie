@@ -1,4 +1,6 @@
 package com.example.themovieapp
 
-class MovieApplication {
+import android.app.Application
+
+class MovieApplication : Application() {
 }
