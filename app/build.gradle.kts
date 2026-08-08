@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -18,6 +20,21 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val properties = Properties()
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { properties.load(it) }
+        }
+        val tmdbApiKey = properties.getProperty("TMDB_API_KEY")
+            ?: project.findProperty("TMDB_API_KEY") as? String
+            ?: error("TMDB_API_KEY is missing from local.properties or gradle.properties")
+
+        buildConfigField(
+            "String",
+            "TMDB_API_KEY",
+            "\"$tmdbApiKey\""
+        )
     }
 
     buildTypes {
@@ -32,6 +49,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
