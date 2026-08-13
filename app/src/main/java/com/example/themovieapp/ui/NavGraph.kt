@@ -2,6 +2,7 @@ package com.example.themovieapp.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -75,7 +76,12 @@ fun NavGraph(
                                     restoreState = true
                                 }
                             },
-                            icon = { painterResource(dest.icon) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(dest.icon),
+                                    contentDescription = dest.label
+                                )
+                            },
                             label = { Text(dest.label) },
                         )
                     }
@@ -86,7 +92,7 @@ fun NavGraph(
         NavHost(
             navController = navController,
             startDestination = Routes.HOME,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ){
             composable(Routes.HOME){
                 HomeScreen(

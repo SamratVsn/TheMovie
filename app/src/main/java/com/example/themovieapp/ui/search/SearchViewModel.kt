@@ -31,6 +31,7 @@ class SearchViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
+    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private var searchJob : Job? = null
 
