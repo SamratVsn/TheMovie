@@ -20,13 +20,15 @@ data class ProfileEditState(
     val isEditing: Boolean = false,
     val nameDraft: String = "",
     val bioDraft: String = "",
-    val genreDraft: String = ""
+    val genreDraft: String = "",
+    val isSaving: Boolean = false,
+    val errorMessage: String? = null
 )
 
 class ProfileViewModel (
     private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
-    val preferences : StateFlow<UserPreferences> = preferencesRepository.preferences
+    val preferences: StateFlow<UserPreferences> = preferencesRepository.preferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -34,10 +36,9 @@ class ProfileViewModel (
         )
 
     private val _editState = MutableStateFlow(ProfileEditState())
-
     val editState: StateFlow<ProfileEditState> = _editState.asStateFlow()
 
-    fun startEditing(){
+    fun startEditing() {
         val current = preferences.value
         _editState.value = ProfileEditState(
             isEditing = true,
@@ -47,7 +48,7 @@ class ProfileViewModel (
         )
     }
 
-    fun cancelEditing(){
+    fun cancelEditing() {
         _editState.value = ProfileEditState()
     }
 
@@ -59,17 +60,27 @@ class ProfileViewModel (
         _editState.update { it.copy(genreDraft = value) }
     }
 
-    fun onNameChange(value: String){
-        _editState.update { it.copy(nameDraft = value) }
+    fun onNameChange(value: String) {
+        _editState.update { it.copy(nameDraft = value, errorMessage = null) }
     }
 
     fun saveProfile() {
         val draft = _editState.value
+        if (draft.nameDraft.isBlank()) {
+            _editState.update { it.copy(errorMessage = "Name can't be empty") }
+            return
+        }
+
         viewModelScope.launch {
-            preferencesRepository.setDisplayName(draft.nameDraft)
-            preferencesRepository.setBio(draft.bioDraft)
-            preferencesRepository.setFavoriteGenre(draft.genreDraft)
-            _editState.value = ProfileEditState()
+            _editState.update { it.copy(isSaving = true, errorMessage = null) }
+            try {
+                preferencesRepository.setDisplayName(draft.nameDraft)
+                preferencesRepository.setBio(draft.bioDraft)
+                preferencesRepository.setFavoriteGenre(draft.genreDraft)
+                _editState.value = ProfileEditState() // resets to not-editing on success
+            } catch (e: Exception) {
+                _editState.update { it.copy(isSaving = false, errorMessage = "Couldn't save. Try again.") }
+            }
         }
     }
 

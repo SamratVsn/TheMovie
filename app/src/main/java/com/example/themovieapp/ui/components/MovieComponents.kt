@@ -19,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +33,10 @@ import com.example.themovieapp.model.Movie
 import com.example.themovieapp.network.ImageUrl
 import com.example.themovieapp.ui.theme.Gold
 import java.util.Locale
+import androidx.compose.material3.Button
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun MoviePoster(
@@ -46,11 +49,11 @@ fun MoviePoster(
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant),
         loading = {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
             }
         },
         error = {
@@ -58,7 +61,8 @@ fun MoviePoster(
                 Icon(
                     painter = painterResource(R.drawable.broken_image),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
@@ -73,47 +77,61 @@ fun MovieCard(
 ) {
     Column(
         modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
-            .padding(4.dp)
+            .padding(6.dp)
     ) {
-        MoviePoster(
-            posterPath = movie.posterPath,
-            contentDescription = movie.title,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(2f / 3f)
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = movie.title,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 4.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.star),
+        Box {
+            MoviePoster(
+                posterPath = movie.posterPath,
                 contentDescription = null,
-                tint = Gold,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(2f / 3f)
             )
-            Spacer(Modifier.width(4.dp))
-            Text(
-                text = String.format(Locale.US, "%.1f", movie.voteAverage),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (!movie.releaseDate.isNullOrBlank()) {
+            // Rating badge overlaid on the poster
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(6.dp)
+                    .align(Alignment.TopEnd)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black.copy(alpha = 0.65f))
+                    .padding(horizontal = 6.dp, vertical = 3.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.star),
+                    contentDescription = null,
+                    tint = Gold,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(Modifier.width(3.dp))
                 Text(
-                    text = " · ${movie.releaseDate.take(4)}",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = String.format(Locale.US, "%.1f", movie.voteAverage),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White
                 )
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = movie.title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Medium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        if (!movie.releaseDate.isNullOrBlank()) {
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = movie.releaseDate.take(4),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -124,7 +142,7 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -141,13 +159,24 @@ fun ErrorScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(
+            painter = painterResource(R.drawable.broken_image),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier.size(48.dp)
+        )
+        Spacer(Modifier.height(12.dp))
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(12.dp))
-        TextButton(onClick = onRetry) {
+        Spacer(Modifier.height(16.dp))
+        Button(
+            onClick = onRetry,
+            shape = RoundedCornerShape(12.dp)
+        ) {
             Text("Try again")
         }
     }

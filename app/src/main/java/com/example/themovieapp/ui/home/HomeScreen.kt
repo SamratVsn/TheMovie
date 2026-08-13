@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,8 +23,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,38 +35,48 @@ import com.example.themovieapp.model.Movie
 import com.example.themovieapp.ui.components.ErrorScreen
 import com.example.themovieapp.ui.components.LoadingScreen
 import com.example.themovieapp.ui.components.MovieCard
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.example.themovieapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onMovieClick: (Int) -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
-){
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Home") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            Text(
+                text = "Home",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+            )
+
             BrowseChips(
                 browseMode = uiState.browseMode,
                 selectedCategory = uiState.selectedCategory,
                 onShowAll = viewModel::showAllSections,
                 onSelectCategory = viewModel::selectCategory,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
+
+            Spacer(Modifier.height(8.dp))
 
             when {
                 uiState.isLoading -> LoadingScreen()
@@ -79,7 +88,8 @@ fun HomeScreen(
                     popular = uiState.popular,
                     nowPlaying = uiState.nowPlaying,
                     topRated = uiState.topRated,
-                    onMovieClick = onMovieClick
+                    onMovieClick = onMovieClick,
+                    onSeeAll = viewModel::selectCategory
                 )
                 else -> SingleCategoryGrid(
                     movies = when (uiState.selectedCategory) {
@@ -111,14 +121,16 @@ private fun BrowseChips(
         FilterChip(
             selected = browseMode == BrowseMode.ALL_SECTIONS,
             onClick = onShowAll,
-            label = { Text("All") }
+            label = { Text("All") },
+            shape = RoundedCornerShape(10.dp)
         )
         MovieCategory.entries.forEach { category ->
             FilterChip(
                 selected = browseMode == BrowseMode.SINGLE_CATEGORY &&
                         selectedCategory == category,
                 onClick = { onSelectCategory(category) },
-                label = { Text(category.label) }
+                label = { Text(category.label) },
+                shape = RoundedCornerShape(10.dp)
             )
         }
     }
@@ -129,16 +141,11 @@ private fun AllSectionsHome(
     popular: List<Movie>,
     nowPlaying: List<Movie>,
     topRated: List<Movie>,
-    onMovieClick: (Int) -> Unit
+    onMovieClick: (Int) -> Unit,
+    onSeeAll: (MovieCategory) -> Unit
 ) {
     if (popular.isEmpty() && nowPlaying.isEmpty() && topRated.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = "No movies found",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        HomeEmptyState()
         return
     }
 
@@ -151,17 +158,20 @@ private fun AllSectionsHome(
         MovieSection(
             title = "Popular",
             movies = popular,
-            onMovieClick = onMovieClick
+            onMovieClick = onMovieClick,
+            onSeeAll = { onSeeAll(MovieCategory.POPULAR) }
         )
         MovieSection(
             title = "Now Playing",
             movies = nowPlaying,
-            onMovieClick = onMovieClick
+            onMovieClick = onMovieClick,
+            onSeeAll = { onSeeAll(MovieCategory.NOW_PLAYING) }
         )
         MovieSection(
             title = "Top Rated",
             movies = topRated,
-            onMovieClick = onMovieClick
+            onMovieClick = onMovieClick,
+            onSeeAll = { onSeeAll(MovieCategory.TOP_RATED) }
         )
     }
 }
@@ -170,25 +180,37 @@ private fun AllSectionsHome(
 private fun MovieSection(
     title: String,
     movies: List<Movie>,
-    onMovieClick: (Int) -> Unit
+    onMovieClick: (Int) -> Unit,
+    onSeeAll: () -> Unit
 ) {
     if (movies.isEmpty()) return
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            movies.take(12).forEach { movie ->
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (movies.size > 12) {
+                TextButton(onClick = onSeeAll) {
+                    Text("See all")
+                }
+            }
+        }
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(movies.take(12), key = { it.id }) { movie ->
                 MovieCard(
                     movie = movie,
                     onClick = { onMovieClick(movie.id) },
@@ -196,7 +218,7 @@ private fun MovieSection(
                 )
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
     }
 }
 
@@ -206,27 +228,41 @@ private fun SingleCategoryGrid(
     onMovieClick: (Int) -> Unit
 ) {
     if (movies.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = "No movies found",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        HomeEmptyState()
         return
     }
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 140.dp),
-        contentPadding = PaddingValues(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(movies, key = { it.id }) { movie ->
             MovieCard(
                 movie = movie,
                 onClick = { onMovieClick(movie.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeEmptyState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(R.drawable.movie),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = "No movies found",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

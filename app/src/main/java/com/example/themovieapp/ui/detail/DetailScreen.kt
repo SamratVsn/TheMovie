@@ -22,10 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.themovieapp.R
 import com.example.themovieapp.model.MovieDetail
 import com.example.themovieapp.network.ImageUrl
@@ -44,49 +40,51 @@ import com.example.themovieapp.ui.components.LoadingScreen
 import com.example.themovieapp.ui.components.MoviePoster
 import com.example.themovieapp.ui.theme.Gold
 import java.util.Locale
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import coil.compose.SubcomposeAsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     onBack: () -> Unit,
     viewModel: DetailViewModel = viewModel(factory = DetailViewModel.Factory)
-){
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = uiState.movie?.title ?: "Details",
-                        maxLines = 1
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         when {
-            uiState.isLoading -> LoadingScreen(Modifier.padding(innerPadding))
+            uiState.isLoading -> LoadingScreen()
             uiState.errorMessage != null -> ErrorScreen(
                 message = uiState.errorMessage.orEmpty(),
-                onRetry = viewModel::retry,
-                modifier = Modifier.padding(innerPadding)
+                onRetry = viewModel::retry
             )
-            uiState.movie != null -> MovieDetailContent(
-                movie = uiState.movie!!,
-                modifier = Modifier.padding(innerPadding)
+            uiState.movie != null -> MovieDetailContent(movie = uiState.movie!!)
+        }
+
+        // Floating back button, always on top
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .padding(16.dp)
+                .statusBarsPadding()
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.4f))
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.arrow_back),
+                contentDescription = "Back",
+                tint = Color.White
             )
         }
     }
@@ -107,108 +105,160 @@ private fun MovieDetailContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = ImageUrl.backdrop(movie.backdropPath)
                     ?: ImageUrl.poster(movie.posterPath),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                loading = {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(strokeWidth = 2.dp)
+                    }
+                },
+                error = {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(R.drawable.broken_image),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background),
+                            startY = 100f
+                        )
+                    )
             )
         }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
+                .offset(y = (-48).dp),
+            verticalAlignment = Alignment.Bottom
         ) {
             MoviePoster(
                 posterPath = movie.posterPath,
                 contentDescription = movie.title,
                 modifier = Modifier
-                    .width(120.dp)
+                    .width(110.dp)
                     .aspectRatio(2f / 3f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(14.dp))
             )
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = movie.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (!movie.tagline.isNullOrBlank()) {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = movie.tagline,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.star),
-                        contentDescription = null,
-                        tint = Gold,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = String.format(Locale.US, "%.1f", movie.voteAverage),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = " (${movie.voteCount} votes)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                if (!movie.releaseDate.isNullOrBlank()) {
-                    Text(
-                        text = "Released: ${movie.releaseDate}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                movie.runtime?.let { minutes ->
-                    Text(
-                        text = "Runtime: ${minutes} min",
-                        style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
 
-        if (movie.genres.isNotEmpty()) {
-            FlowRow(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .offset(y = (-40).dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                movie.genres.forEach { genre ->
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(genre.name) }
+                Icon(
+                    painter = painterResource(R.drawable.star),
+                    contentDescription = null,
+                    tint = Gold,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = String.format(Locale.US, "%.1f", movie.voteAverage),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = " (${movie.voteCount})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                if (!movie.releaseDate.isNullOrBlank() || movie.runtime != null) {
+                    Spacer(Modifier.width(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(3.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurfaceVariant)
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        text = listOfNotNull(
+                            movie.releaseDate?.take(4),
+                            movie.runtime?.let { "$it min" }
+                        ).joinToString("  •  "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            Spacer(Modifier.height(8.dp))
-        }
 
-        Column(modifier = Modifier.padding(16.dp)) {
+            if (movie.genres.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    movie.genres.forEach { genre ->
+                        AssistChip(
+                            onClick = {},
+                            label = { Text(genre.name) },
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+
             Text(
                 text = "Overview",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(8.dp))
             Text(
                 text = movie.overview?.takeIf { it.isNotBlank() } ?: "No overview available.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.15
             )
             Spacer(Modifier.height(24.dp))
         }
