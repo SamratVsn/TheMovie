@@ -13,7 +13,7 @@
 
 | Home | Search | Movie Details | Settings | Profile |
 |------|--------|---------------|----------|---------|
-| ![](screenshots/home.png) | ![](screenshots/search.png) | ![](screenshots/details.png) | ![](screenshots/settings.png) | ![](screenshots/profile.png) |
+| ![](Home.png) | ![](Search.png) | ![](Details.png) | ![](Settings.png) | ![](Profile.png) |
 
 ---
 
