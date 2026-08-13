@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.SubcomposeAsyncImage
@@ -71,7 +72,6 @@ fun DetailScreen(
             uiState.movie != null -> MovieDetailContent(movie = uiState.movie!!)
         }
 
-        // Floating back button, always on top
         IconButton(
             onClick = onBack,
             modifier = Modifier
@@ -83,7 +83,7 @@ fun DetailScreen(
         ) {
             Icon(
                 painter = painterResource(R.drawable.arrow_back),
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.back),
                 tint = Color.White
             )
         }

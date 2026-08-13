@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -72,10 +73,10 @@ fun SettingsScreen(
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                SettingsSection(title = "Appearance") {
+                SettingsSection(title = stringResource(R.string.appearance)) {
                     SettingsCard {
                         Text(
-                            text = "Theme",
+                            text = stringResource(R.string.theme),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
@@ -106,17 +107,17 @@ fun SettingsScreen(
                     }
                 }
 
-                SettingsSection(title = "Home") {
+                SettingsSection(title = stringResource(R.string.home)) {
                     SettingsCard {
                         Text(
-                            text = "Default movie category",
+                            text = stringResource(R.string.default_movie),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Used the next time you open the Home tab.",
+                            text = stringResource(R.string.used_next),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -135,27 +136,27 @@ fun SettingsScreen(
                     }
                 }
 
-                SettingsSection(title = "About") {
+                SettingsSection(title = stringResource(R.string.about)) {
                     SettingsCard {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "The Movie App",
+                                text = stringResource(R.string.app_name),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = "Version 1.0.0",
+                                text = stringResource(R.string.version),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(16.dp))
                             Text(
-                                text = "A beginner-friendly Jetpack Compose demo powered by The Movie Database (TMDB) API.",
+                                text = stringResource(R.string.app_info),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
@@ -184,7 +185,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(Modifier.width(10.dp))
                                 Text(
-                                    text = "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+                                    text = stringResource(R.string.tmdb),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

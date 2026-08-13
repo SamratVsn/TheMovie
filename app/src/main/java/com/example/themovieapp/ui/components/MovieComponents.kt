@@ -35,6 +35,7 @@ import com.example.themovieapp.ui.theme.Gold
 import java.util.Locale
 import androidx.compose.material3.Button
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 
@@ -177,7 +178,7 @@ fun ErrorScreen(
             onClick = onRetry,
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Try again")
+            Text(text = stringResource(R.string.try_again))
         }
     }
 }

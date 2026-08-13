@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,7 @@ fun SearchScreen(
                 .padding(innerPadding)
         ) {
             Text(
-                text = "Search",
+                text = stringResource(R.string.search),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -73,7 +74,7 @@ fun SearchScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 12.dp),
-                placeholder = { Text("Search movies by title") },
+                placeholder = { Text(stringResource(R.string.search_by_title)) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -94,7 +95,7 @@ fun SearchScreen(
                         IconButton(onClick = viewModel::clearQuery) {
                             Icon(
                                 painterResource(R.drawable.delete_icon),
-                                contentDescription = "Clear search",
+                                contentDescription = stringResource(R.string.clear_search),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -112,13 +113,13 @@ fun SearchScreen(
 
                 !uiState.hasSearched -> SearchEmptyState(
                     icon = R.drawable.search,
-                    title = "Find your next watch",
-                    subtitle = "Type a movie title to start searching"
+                    title = stringResource(R.string.find_next),
+                    subtitle = stringResource(R.string.type_title)
                 )
 
                 uiState.movies.isEmpty() -> SearchEmptyState(
                     icon = R.drawable.search_off,
-                    title = "No results",
+                    title = stringResource(R.string.no_results),
                     subtitle = "Nothing matches \"${uiState.query.trim()}\""
                 )
 

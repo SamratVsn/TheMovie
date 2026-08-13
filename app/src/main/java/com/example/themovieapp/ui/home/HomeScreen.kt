@@ -41,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.themovieapp.R
 
@@ -156,19 +157,19 @@ private fun AllSectionsHome(
             .padding(bottom = 16.dp)
     ) {
         MovieSection(
-            title = "Popular",
+            title = stringResource(R.string.popular),
             movies = popular,
             onMovieClick = onMovieClick,
             onSeeAll = { onSeeAll(MovieCategory.POPULAR) }
         )
         MovieSection(
-            title = "Now Playing",
+            title = stringResource(R.string.now_playing),
             movies = nowPlaying,
             onMovieClick = onMovieClick,
             onSeeAll = { onSeeAll(MovieCategory.NOW_PLAYING) }
         )
         MovieSection(
-            title = "Top Rated",
+            title = stringResource(R.string.top_rated),
             movies = topRated,
             onMovieClick = onMovieClick,
             onSeeAll = { onSeeAll(MovieCategory.TOP_RATED) }

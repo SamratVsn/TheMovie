@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -140,7 +141,7 @@ private fun ProfileHeader(displayName: String, isEditing: Boolean) {
         ) {
             Icon(
                 painter = painterResource(R.drawable.profile),
-                contentDescription = "Profile picture",
+                contentDescription = stringResource(R.string.profile_picture),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(44.dp)
             )
@@ -180,19 +181,19 @@ private fun ProfileDisplayContent(
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             ProfileInfoRow(
                 icon = R.drawable.favotite,
-                label = "Favorite genre",
+                label = stringResource(R.string.favorite_genre),
                 value = preferences.favoriteGenre
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             ProfileInfoRow(
                 R.drawable.home,
-                label = "Default category",
+                label = stringResource(R.string.default_category),
                 value = preferences.defaultCategory.label
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             ProfileInfoRow(
                 icon = R.drawable.palette,
-                label = "Theme",
+                label = stringResource(R.string.theme),
                 value = preferences.themeMode.name.lowercase()
                     .replaceFirstChar { it.titlecase() }
             )
@@ -210,7 +211,7 @@ private fun ProfileDisplayContent(
     ) {
         Icon(painterResource(R.drawable.edit_task), contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(8.dp))
-        Text("Edit profile")
+        Text(stringResource(R.string.edit))
     }
 
     Spacer(Modifier.height(24.dp))
@@ -269,10 +270,10 @@ private fun EditProfileForm(
             OutlinedTextField(
                 value = editState.nameDraft,
                 onValueChange = viewModel::onNameChange,
-                label = { Text("Display name") },
+                label = { Text(stringResource(R.string.display_name)) },
                 singleLine = true,
                 isError = !isNameValid,
-                supportingText = { if (!isNameValid) Text("Name can't be empty") },
+                supportingText = { if (!isNameValid) Text(stringResource(R.string.no_empty_name)) },
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { bioFocusRequester.requestFocus() }),
@@ -282,7 +283,7 @@ private fun EditProfileForm(
             OutlinedTextField(
                 value = editState.bioDraft,
                 onValueChange = viewModel::onBioChange,
-                label = { Text("Bio") },
+                label = { Text(stringResource(R.string.bio)) },
                 minLines = 3,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -295,7 +296,7 @@ private fun EditProfileForm(
             OutlinedTextField(
                 value = editState.genreDraft,
                 onValueChange = viewModel::onGenreChange,
-                label = { Text("Favorite genre") },
+                label = { Text(stringResource(R.string.favorite_genre)) },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -320,7 +321,7 @@ private fun EditProfileForm(
                 .height(50.dp),
             shape = RoundedCornerShape(14.dp)
         ) {
-            Text("Cancel")
+            Text(stringResource(R.string.cancel))
         }
         Button(
             onClick = viewModel::saveProfile,
@@ -337,7 +338,7 @@ private fun EditProfileForm(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         }
     }
