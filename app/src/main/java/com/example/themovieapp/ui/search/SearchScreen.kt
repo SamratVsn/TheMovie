@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun SearchScreen(
     onMovieClick: (Int) -> Unit,
-    viewModel: SearchViewModel = viewModel()
+    viewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory)
 ){
-
 }
