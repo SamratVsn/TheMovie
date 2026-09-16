@@ -103,11 +103,11 @@ class HomeViewModel(
                         errorMessage = null
                     )
                 }
-            }.onFailure { error ->
+            }.onFailure {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = error.message ?: "Could not load movies"
+                        errorMessage = "Something went wrong. Please check your internet connection and try again."
                     )
                 }
             }

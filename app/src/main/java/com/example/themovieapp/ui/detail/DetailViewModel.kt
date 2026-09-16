@@ -46,11 +46,11 @@ class DetailViewModel(
                         it.copy(movie = movie, isLoading = false, errorMessage = null)
                     }
                 }
-                .onFailure { error ->
+                .onFailure {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Could not load movie details"
+                            errorMessage = "Something went wrong. Please check your internet connection and try again."
                         )
                     }
                 }

@@ -79,7 +79,7 @@ class ProfileViewModel (
                 preferencesRepository.setFavoriteGenre(draft.genreDraft)
                 _editState.value = ProfileEditState() // resets to not-editing on success
             } catch (e: Exception) {
-                _editState.update { it.copy(isSaving = false, errorMessage = "Couldn't save. Try again.") }
+                _editState.update { it.copy(isSaving = false, errorMessage = "Something went wrong. Please try again.") }
             }
         }
     }
