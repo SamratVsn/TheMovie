@@ -2,32 +2,40 @@
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.02.01-green.svg?style=flat&logo=android)](https://developer.android.com/jetpack/compose)
-[![Material 3](https://img.shields.io/badge/Material%203-Latest-red.svg?style=flat&logo=materialdesign)](https://m3.material.io)
+[![Material 3](https://img.shields.io/badge/Material%203-1.4.0-red.svg?style=flat&logo=materialdesign)](https://m3.material.io)
+[![Firebase Auth](https://img.shields.io/badge/Firebase-Auth-orange.svg?style=flat&logo=firebase)](https://firebase.google.com/docs/auth)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**The Movie App** is a modern Android application built with Jetpack Compose that leverages the TMDB API to showcase popular, now playing, and top-rated movies. It features a clean Material 3 design, seamless navigation, and user preference management using DataStore.
+**The Movie App** is a modern Android application built with Jetpack Compose that leverages the TMDB API to showcase popular, now playing, and top-rated movies. It features a clean Material 3 design, Firebase Email/Password authentication, a persistent watchlist, personalized genre recommendations, offline caching, and user preference management using DataStore.
 
 ---
 
 ## 📸 Screenshots
 
-| Home | Search | Movie Details | Settings | Profile |
-|------|--------|---------------|----------|---------|
-| ![](Home.png) | ![](Search.png) | ![](Details.png) | ![](Settings.png) | ![](Profile.png) |
+| Home | Search | Movie Details | Profile |
+|------|--------|---------------|---------|
+| ![](Home.png) | ![](Search.png) | ![](Details.png) | ![](Profile.png) |
+
+| Settings |
+|----------|
+| ![](Settings.png) |
 
 ---
 
 ## ✨ Features
 
-*   **Browse Movies**: Explore sections for Popular, Now Playing, and Top Rated films.
-*   **Search Functionality**: Search for any movie in the TMDB database with real-time results.
-*   **Detailed View**: View comprehensive movie information, including backdrops, posters, ratings, and plot overviews.
-*   **User Profile**: Customize your profile with a display name, bio, and favorite genre.
-*   **Settings**: Manage app preferences like Theme Mode (System, Light, Dark) and default movie categories.
-*   **Material 3 UI**: Modern, sleek interface adhering to the latest Android design standards.
-*   **Persistent Preferences**: User settings are saved locally using Jetpack DataStore.
-*   **Image Loading**: High-quality image rendering with Coil.
-*   **Adaptive Launcher Icon**: Optimized icons for various device home screens.
+*   **Browse Movies**: Explore Popular, Now Playing, and Top Rated sections, or drill into a single category grid.
+*   **Personalized Recommendations**: A "Because you like *X*" row built from your favorite genre.
+*   **Search**: Debounced live search across the TMDB database with infinite scrolling.
+*   **Movie Details**: Backdrops, posters, ratings, runtime, genres, and overview — with pull-to-refresh and offline fallback.
+*   **Favorites / Watchlist**: Tap the heart on any movie to save it. Saved and removed actions confirm via themed snackbars. The list persists across restarts.
+*   **Authentication**: Firebase Email/Password sign-up, login, password reset, and sign-out. Your signup name becomes your in-app display name and stays in sync with Firebase.
+*   **Profile**: Read-only overview (avatar initials, name, email, bio, preferences, account) with Settings one tap away in the top bar.
+*   **Settings**: Edit display name, bio, and favorite genre (genre is picked from the official TMDB list, not free text), plus theme mode and default category.
+*   **Offline Support**: 10 MB HTTP disk cache + 5-minute in-memory repository cache with stale-data fallback, so cached movies still open with no connection.
+*   **Smart States**: Pull-to-refresh everywhere, pagination spinners, inline retry banners that preserve loaded content, and specific error messages (no internet, timeout, invalid API key, rate limits).
+*   **Material 3 UI**: Edge-to-edge layout with proper status-bar insets, dark/light/system themes, and adaptive launcher icon.
+*   **Image Loading**: High-quality poster/backdrop rendering with Coil, including loading and error placeholders.
 
 ---
 
@@ -37,10 +45,11 @@
 *   **Jetpack Compose**: Modern toolkit for building native UI.
 *   **Material 3**: Latest version of Google's open-source design system.
 *   **Navigation Compose**: Declarative navigation for Compose.
-*   **Retrofit & OkHttp**: Networking and API interaction.
+*   **Retrofit & OkHttp**: Networking and API interaction (with disk cache, timeouts, and debug-only logging).
 *   **Kotlinx Serialization**: Type-safe JSON parsing.
+*   **Firebase Authentication**: Email/Password sign-up, login, and session management.
 *   **Coil**: Image loading library for Android.
-*   **DataStore Preferences**: Reactive data storage for simple key-value pairs.
+*   **DataStore Preferences**: Reactive storage for user preferences and the watchlist.
 *   **ViewModel**: Architecture component to store and manage UI-related data.
 *   **Coroutines & Flow**: Asynchronous programming and reactive data streams.
 
@@ -51,8 +60,9 @@
 The project follows the recommended **MVVM (Model-View-ViewModel)** architecture and the **Repository Pattern** to ensure a clean separation of concerns and maintainability.
 
 *   **Single Activity Architecture**: The entire app runs within a single `MainActivity`.
-*   **Navigation Compose**: Handles transitions between different screens via `NavGraph`.
-*   **Dependency Injection**: Manual DI implemented via a `DefaultAppContainer` for service and repository provisioning.
+*   **Navigation Compose**: Bottom-bar destinations (Home, Search, Favorites, Profile) plus detail, auth, and settings routes via `NavGraph`.
+*   **Manual DI**: Repositories (`MovieRepository`, `PreferencesRepository`, `WatchlistRepository`, `AuthRepository`) are provisioned by `MovieApplication` and injected through ViewModel factories.
+*   **Unidirectional Data Flow**: ViewModels expose `StateFlow` UI state; screens render it and forward events back.
 
 ---
 
@@ -60,20 +70,27 @@ The project follows the recommended **MVVM (Model-View-ViewModel)** architecture
 
 ```text
 app/
- ├── data/                # Repositories and local data management (DataStore)
- ├── model/               # Data models and DTOs
- ├── network/             # Retrofit service and API client configuration
- ├── ui/
- │   ├── components/      # Reusable UI widgets
- │   ├── detail/          # Movie detail screen and logic
- │   ├── home/            # Home screen and logic
- │   ├── profile/         # User profile screen and logic
- │   ├── search/          # Search screen and logic
- │   ├── settings/        # App settings screen and logic
- │   ├── theme/           # Color, Type, and Theme definitions
- │   └── NavGraph.kt      # Navigation routing
- ├── MainActivity.kt      # Entry point of the application
- └── MovieApplication.kt   # Application class for global initialization
+├── data/
+│   ├── auth/                # AuthRepository, AuthState (Firebase session flow)
+│   ├── MovieRepository.kt   # TMDB access + 5-min in-memory cache
+│   ├── PreferencesRepository.kt  # Theme, category, profile (DataStore)
+│   ├── WatchlistRepository.kt    # Favorites list (DataStore JSON)
+│   ├── MovieErrors.kt       # HTTP/network → user-friendly messages
+│   └── UserPreferences.kt   # ThemeMode, MovieCategory, genre lists
+├── model/                   # Movie / MovieDetail / Genre DTOs
+├── network/                 # Retrofit service, OkHttp client, image URLs
+├── ui/
+│   ├── components/          # MovieCard, posters, loading/error screens
+│   ├── detail/              # Movie detail + favorite toggle + snackbars
+│   ├── home/                # Home, recommendations, pagination
+│   ├── profile/             # Profile display + Auth (login/signup) screens
+│   ├── search/              # Search with debounce + pagination
+│   ├── settings/            # Profile editing, appearance, about
+│   ├── watchlist/           # Favorites screen
+│   ├── theme/               # Color, Type, and Theme definitions
+│   └── NavGraph.kt          # All routes + bottom bar
+├── MainActivity.kt          # Entry point of the application
+└── MovieApplication.kt      # DI provisioning + network init
 ```
 
 ---
@@ -93,7 +110,7 @@ app/
     TMDB_API_KEY=your_api_key_here
     ```
     Headless/CI builds can instead use `~/.gradle/gradle.properties`, `-PTMDB_API_KEY=...`, or the `TMDB_API_KEY` env var.
-4.  **Add Firebase config**: download `google-services.json` for package `com.example.themovieapp` from the Firebase Console and place it at `app/google-services.json` (also git-ignored — each developer/CI uses their own). The app won't build without it.
+4.  **Add Firebase config**: download `google-services.json` for package `com.example.themovieapp` from the Firebase Console (with Email/Password sign-in enabled) and place it at `app/google-services.json` (also git-ignored — each developer/CI uses their own). The app won't build without it.
 5.  **Sync Gradle**: Wait for Android Studio to download dependencies and sync the project.
 6.  **Run the app**: Click the "Run" button or press `Shift + F10`.
 
@@ -105,7 +122,7 @@ app/
 *   **Target SDK**: 37
 *   **Compile SDK**: 37
 *   **Kotlin Version**: 2.2.10
-*   **Gradle Version**: 9.3.1 (AGP)
+*   **AGP Version**: 9.4.1
 
 ---
 
@@ -113,23 +130,37 @@ app/
 
 | Library | Purpose |
 | ------- | ------- |
-| `androidx.compose` | UI Toolkit |
-| `androidx.navigation` | App Navigation |
-| `com.squareup.retrofit2` | API Requests |
-| `io.coil-kt:coil-compose` | Image Loading |
-| `androidx.datastore` | Local Persistence |
-| `kotlinx.serialization` | Data Parsing |
-| `okhttp3:logging-interceptor` | Network Debugging |
+| `androidx.compose` (BOM `2026.02.01`) | UI Toolkit |
+| `androidx.compose.material3` (`1.4.0`) | Material 3 components |
+| `androidx.navigation:navigation-compose` (`2.9.8`) | App Navigation |
+| `com.squareup.retrofit2:retrofit` (`2.9.0`) | API Requests |
+| `com.squareup.okhttp3` (`4.11.0`) | HTTP client, cache, timeouts |
+| `okhttp3:logging-interceptor` | Network debugging (debug builds only) |
+| `io.coil-kt:coil-compose` (`2.4.0`) | Image Loading |
+| `androidx.datastore:datastore-preferences` | Local Persistence |
+| `org.jetbrains.kotlinx:kotlinx-serialization-json` (`1.6.0`) | Data Parsing |
+| `com.google.firebase:firebase-bom` (`33.1.2`) + `firebase-auth` | Authentication backend |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-play-services` | `Task.await()` bridges for Firebase |
+| `androidx.lifecycle` (runtime, viewmodel) | ViewModels + lifecycle-aware state |
+
+---
+
+## 🔐 Secrets & Security Notes
+
+*   `local.properties` (TMDB key) and `app/google-services.json` (Firebase config) are git-ignored — see `local.properties.example` for the template.
+*   The Firebase client key is a public identifier, not a private secret: protect it with package/SHA-1 restrictions in the Google Cloud Console and consider enabling App Check.
+*   A truly private key can't live in a shipped APK — for stronger secrecy, proxy TMDB through your own backend later.
 
 ---
 
 ## 🔮 Future Improvements
 
-*   **Favorites/Watchlist**: Allow users to save movies for later viewing.
 *   **Trailer Integration**: Embed YouTube players to watch movie trailers.
-*   **Pagination**: Implement Paging 3 for infinite scrolling in search and lists.
-*   **Offline Support**: Cache API responses with Room for offline browsing.
+*   **Cloud-synced Watchlist**: Sync favorites per user via Firestore instead of local-only storage.
+*   **Google Sign-In & Email Verification**: More auth providers plus verified-email gating.
+*   **Paging 3**: Migrate manual pagination to the Paging library with Room caching.
 *   **Push Notifications**: Notify users about new releases or updates to their watchlist.
+*   **Release Hardening**: R8/minify,expanded tests, and App Check enforcement.
 
 ---
 

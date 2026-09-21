@@ -74,7 +74,6 @@ class AuthViewModel(
             val result = authRepository.signUp(name, email, password)
             result.fold(
                 onSuccess = {
-                    // Signup name (e.g. "Admin") becomes the app display name too
                     runCatching { preferencesRepository.setDisplayName(name) }
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 },
