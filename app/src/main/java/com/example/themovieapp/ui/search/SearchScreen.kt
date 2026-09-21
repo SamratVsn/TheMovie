@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,8 +24,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -103,38 +106,65 @@ fun SearchScreen(
                 }
             )
 
-            when {
-                uiState.isLoading -> LoadingScreen()
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = viewModel::refresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading -> LoadingScreen()
 
-                uiState.errorMessage != null -> ErrorScreen(
-                    message = uiState.errorMessage.orEmpty(),
-                    onRetry = viewModel::retry
-                )
+                    uiState.errorMessage != null && uiState.movies.isEmpty() -> ErrorScreen(
+                        message = uiState.errorMessage.orEmpty(),
+                        onRetry = viewModel::retry
+                    )
 
-                !uiState.hasSearched -> SearchEmptyState(
-                    icon = R.drawable.search,
-                    title = stringResource(R.string.find_next),
-                    subtitle = stringResource(R.string.type_title)
-                )
+                    !uiState.hasSearched -> SearchEmptyState(
+                        icon = R.drawable.search,
+                        title = stringResource(R.string.find_next),
+                        subtitle = stringResource(R.string.type_title)
+                    )
 
-                uiState.movies.isEmpty() -> SearchEmptyState(
-                    icon = R.drawable.search_off,
-                    title = stringResource(R.string.no_results),
-                    subtitle = "Nothing matches \"${uiState.query.trim()}\""
-                )
+                    uiState.movies.isEmpty() -> SearchEmptyState(
+                        icon = R.drawable.search_off,
+                        title = stringResource(R.string.no_results),
+                        subtitle = "Nothing matches \"${uiState.query.trim()}\""
+                    )
 
-                else -> LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 140.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.movies, key = { it.id }) { movie ->
-                        MovieCard(
-                            movie = movie,
-                            onClick = { onMovieClick(movie.id) }
-                        )
+                    else -> Column(modifier = Modifier.fillMaxSize()) {
+                        if (uiState.errorMessage != null) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = uiState.errorMessage.orEmpty(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                TextButton(onClick = viewModel::retry) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 140.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(uiState.movies, key = { it.id }) { movie ->
+                                MovieCard(
+                                    movie = movie,
+                                    onClick = { onMovieClick(movie.id) }
+                                )
+                            }
+                        }
                     }
                 }
             }

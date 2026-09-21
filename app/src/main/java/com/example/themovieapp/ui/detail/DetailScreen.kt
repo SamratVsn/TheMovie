@@ -45,6 +45,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -62,15 +64,42 @@ fun DetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        when {
-            uiState.isLoading -> LoadingScreen()
-            uiState.errorMessage != null -> ErrorScreen(
-                message = uiState.errorMessage.orEmpty(),
-                onRetry = viewModel::retry
-            )
-            uiState.movie != null -> MovieDetailContent(movie = uiState.movie!!)
-        }
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                uiState.isLoading -> LoadingScreen()
+                uiState.movie != null -> Column(modifier = Modifier.fillMaxSize()) {
+                    if (uiState.errorMessage != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .statusBarsPadding(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = uiState.errorMessage.orEmpty(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(onClick = viewModel::retry) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                    MovieDetailContent(movie = uiState.movie!!)
+                }
+                uiState.errorMessage != null -> ErrorScreen(
+                    message = uiState.errorMessage.orEmpty(),
+                    onRetry = viewModel::retry
+                )
+            }
 
         IconButton(
             onClick = onBack,

@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.themovieapp.BuildConfig
 import com.example.themovieapp.MovieApplication
 import com.example.themovieapp.data.MovieRepository
+import com.example.themovieapp.data.toMovieMessage
 import com.example.themovieapp.model.Movie
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -23,6 +23,7 @@ data class SearchUiState(
     val movies: List<Movie> = emptyList(),
     val hasSearched: Boolean = false,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -40,13 +41,13 @@ class SearchViewModel(
         searchJob?.cancel()
         if (query.isBlank()) {
             _uiState.update {
-                it.copy(movies = emptyList(), hasSearched = false, isLoading = false)
+                it.copy(movies = emptyList(), hasSearched = false, isLoading = false, isRefreshing = false)
             }
             return
         }
         searchJob = viewModelScope.launch {
             delay(400.milliseconds)
-            search(query.trim())
+            search(query.trim(), forceRefresh = false)
         }
     }
 
@@ -57,23 +58,38 @@ class SearchViewModel(
 
     fun retry() {
         val query = _uiState.value.query.trim()
-        if (query.isNotBlank()) search(query)
+        if (query.isNotBlank()) search(query, forceRefresh = true)
     }
 
-    private fun search(query: String) {
+    fun refresh() {
+        val query = _uiState.value.query.trim()
+        if (query.isNotBlank()) search(query, forceRefresh = true)
+    }
+
+    private fun search(query: String, forceRefresh: Boolean) {
+        // Search always hits network (results vary); forceRefresh only controls spinner style
+        val hasData = _uiState.value.movies.isNotEmpty()
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, hasSearched = true, errorMessage = null) }
+            _uiState.update {
+                it.copy(
+                    isLoading = !hasData,
+                    isRefreshing = hasData && forceRefresh,
+                    hasSearched = true,
+                    errorMessage = null
+                )
+            }
             movieRepository.searchMovies(query)
                 .onSuccess { movies ->
                     _uiState.update {
-                        it.copy(movies = movies, isLoading = false, errorMessage = null)
+                        it.copy(movies = movies, isLoading = false, isRefreshing = false, errorMessage = null)
                     }
                 }
-                .onFailure {
+                .onFailure { e ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Something went wrong. Please check your internet connection and try again."
+                            isRefreshing = false,
+                            errorMessage = e.toMovieMessage()
                         )
                     }
                 }

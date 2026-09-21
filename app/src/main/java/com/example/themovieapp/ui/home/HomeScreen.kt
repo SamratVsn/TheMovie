@@ -23,6 +23,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -79,27 +80,43 @@ fun HomeScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            when {
-                uiState.isLoading -> LoadingScreen()
-                uiState.errorMessage != null -> ErrorScreen(
-                    message = uiState.errorMessage.orEmpty(),
-                    onRetry = viewModel::retry
-                )
-                uiState.browseMode == BrowseMode.ALL_SECTIONS -> AllSectionsHome(
-                    popular = uiState.popular,
-                    nowPlaying = uiState.nowPlaying,
-                    topRated = uiState.topRated,
-                    onMovieClick = onMovieClick,
-                    onSeeAll = viewModel::selectCategory
-                )
-                else -> SingleCategoryGrid(
-                    movies = when (uiState.selectedCategory) {
-                        MovieCategory.POPULAR -> uiState.popular
-                        MovieCategory.NOW_PLAYING -> uiState.nowPlaying
-                        MovieCategory.TOP_RATED -> uiState.topRated
-                    },
-                    onMovieClick = onMovieClick
-                )
+            val hasData = uiState.popular.isNotEmpty() ||
+                uiState.nowPlaying.isNotEmpty() ||
+                uiState.topRated.isNotEmpty()
+
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = viewModel::refresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when {
+                    uiState.isLoading -> LoadingScreen()
+                    uiState.errorMessage != null && !hasData -> ErrorScreen(
+                        message = uiState.errorMessage.orEmpty(),
+                        onRetry = viewModel::retry
+                    )
+                    uiState.browseMode == BrowseMode.ALL_SECTIONS -> AllSectionsHome(
+                        popular = uiState.popular,
+                        nowPlaying = uiState.nowPlaying,
+                        topRated = uiState.topRated,
+                        recommended = uiState.recommended,
+                        favoriteGenre = uiState.favoriteGenre,
+                        inlineError = uiState.errorMessage.takeIf { hasData },
+                        onRetry = viewModel::retry,
+                        onMovieClick = onMovieClick,
+                        onSeeAll = viewModel::selectCategory
+                    )
+                    else -> SingleCategoryGrid(
+                        movies = when (uiState.selectedCategory) {
+                            MovieCategory.POPULAR -> uiState.popular
+                            MovieCategory.NOW_PLAYING -> uiState.nowPlaying
+                            MovieCategory.TOP_RATED -> uiState.topRated
+                        },
+                        inlineError = uiState.errorMessage.takeIf { hasData },
+                        onRetry = viewModel::retry,
+                        onMovieClick = onMovieClick
+                    )
+                }
             }
         }
     }
@@ -142,6 +159,10 @@ private fun AllSectionsHome(
     popular: List<Movie>,
     nowPlaying: List<Movie>,
     topRated: List<Movie>,
+    recommended: List<Movie>,
+    favoriteGenre: String,
+    inlineError: String?,
+    onRetry: () -> Unit,
     onMovieClick: (Int) -> Unit,
     onSeeAll: (MovieCategory) -> Unit
 ) {
@@ -156,6 +177,17 @@ private fun AllSectionsHome(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp)
     ) {
+        if (inlineError != null) {
+            InlineErrorBanner(message = inlineError, onRetry = onRetry)
+        }
+        if (recommended.isNotEmpty()) {
+            MovieSection(
+                title = "Because you like $favoriteGenre",
+                movies = recommended,
+                onMovieClick = onMovieClick,
+                onSeeAll = null
+            )
+        }
         MovieSection(
             title = stringResource(R.string.popular),
             movies = popular,
@@ -182,7 +214,7 @@ private fun MovieSection(
     title: String,
     movies: List<Movie>,
     onMovieClick: (Int) -> Unit,
-    onSeeAll: () -> Unit
+    onSeeAll: (() -> Unit)?,
 ) {
     if (movies.isEmpty()) return
 
@@ -200,7 +232,7 @@ private fun MovieSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            if (movies.size > 12) {
+            if (movies.size > 12 && onSeeAll != null) {
                 TextButton(onClick = onSeeAll) {
                     Text("See all")
                 }
@@ -226,6 +258,8 @@ private fun MovieSection(
 @Composable
 private fun SingleCategoryGrid(
     movies: List<Movie>,
+    inlineError: String?,
+    onRetry: () -> Unit,
     onMovieClick: (Int) -> Unit
 ) {
     if (movies.isEmpty()) {
@@ -240,11 +274,42 @@ private fun SingleCategoryGrid(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
+        if (inlineError != null) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                InlineErrorBanner(message = inlineError, onRetry = onRetry)
+            }
+        }
         items(movies, key = { it.id }) { movie ->
             MovieCard(
                 movie = movie,
                 onClick = { onMovieClick(movie.id) }
             )
+        }
+    }
+}
+
+@Composable
+private fun InlineErrorBanner(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(Modifier.width(8.dp))
+        TextButton(onClick = onRetry) {
+            Text("Retry")
         }
     }
 }

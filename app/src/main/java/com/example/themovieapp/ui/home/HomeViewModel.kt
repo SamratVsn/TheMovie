@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.themovieapp.MovieApplication
+import com.example.themovieapp.data.GenreNameToId
 import com.example.themovieapp.data.MovieCategory
 import com.example.themovieapp.data.MovieRepository
 import com.example.themovieapp.data.PreferencesRepository
+import com.example.themovieapp.data.toMovieMessage
 import com.example.themovieapp.model.Movie
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -23,9 +25,12 @@ data class HomeUiState(
     val popular: List<Movie> = emptyList(),
     val nowPlaying: List<Movie> = emptyList(),
     val topRated: List<Movie> = emptyList(),
+    val recommended: List<Movie> = emptyList(),
+    val favoriteGenre: String = "Action",
     val selectedCategory: MovieCategory = MovieCategory.POPULAR,
     val browseMode: BrowseMode = BrowseMode.ALL_SECTIONS,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -44,9 +49,27 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            val defaultCategory = preferencesRepository.preferences.first().defaultCategory
-            _uiState.update { it.copy(selectedCategory = defaultCategory) }
-            loadHome()
+            val prefs = preferencesRepository.preferences.first()
+            _uiState.update {
+                it.copy(
+                    selectedCategory = prefs.defaultCategory,
+                    favoriteGenre = prefs.favoriteGenre
+                )
+            }
+            loadHome(forceRefresh = false)
+        }
+        // Keep favorite genre + recommendations live without refetching movies
+        viewModelScope.launch {
+            preferencesRepository.preferences.collect { prefs ->
+                _uiState.update { state ->
+                    if (state.favoriteGenre == prefs.favoriteGenre) return@update state
+                    val all = state.popular + state.nowPlaying + state.topRated
+                    state.copy(
+                        favoriteGenre = prefs.favoriteGenre,
+                        recommended = filterByGenre(all, prefs.favoriteGenre)
+                    )
+                }
+            }
         }
     }
 
@@ -57,34 +80,48 @@ class HomeViewModel(
                 browseMode = BrowseMode.SINGLE_CATEGORY
             )
         }
-        loadHome()
+        loadHome(forceRefresh = false)
     }
 
     fun showAllSections() {
         _uiState.update { it.copy(browseMode = BrowseMode.ALL_SECTIONS) }
-        loadHome()
+        loadHome(forceRefresh = false)
     }
 
-    fun retry() = loadHome()
+    fun retry() = loadHome(forceRefresh = true)
 
-    private fun loadHome() {
+    fun refresh() = loadHome(forceRefresh = true)
+
+    private fun loadHome(forceRefresh: Boolean) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val hasData = hasDataFor(_uiState.value)
+            _uiState.update {
+                it.copy(
+                    isLoading = !hasData,
+                    isRefreshing = hasData && forceRefresh,
+                    errorMessage = null
+                )
+            }
             runCatching {
                 coroutineScope {
                     when (_uiState.value.browseMode) {
                         BrowseMode.ALL_SECTIONS -> {
-                            val popular = async { movieRepository.getPopularMovies().getOrThrow() }
-                            val nowPlaying = async { movieRepository.getNowPlayingMovies().getOrThrow() }
-                            val topRated = async { movieRepository.getTopRatedMovies().getOrThrow() }
+                            val popular = async {
+                                movieRepository.getMovies(MovieCategory.POPULAR, forceRefresh = forceRefresh).getOrThrow()
+                            }
+                            val nowPlaying = async {
+                                movieRepository.getMovies(MovieCategory.NOW_PLAYING, forceRefresh = forceRefresh).getOrThrow()
+                            }
+                            val topRated = async {
+                                movieRepository.getMovies(MovieCategory.TOP_RATED, forceRefresh = forceRefresh).getOrThrow()
+                            }
                             Triple(popular.await(), nowPlaying.await(), topRated.await())
                         }
                         BrowseMode.SINGLE_CATEGORY -> {
-                            val movies = when (_uiState.value.selectedCategory) {
-                                MovieCategory.POPULAR -> movieRepository.getPopularMovies().getOrThrow()
-                                MovieCategory.NOW_PLAYING -> movieRepository.getNowPlayingMovies().getOrThrow()
-                                MovieCategory.TOP_RATED -> movieRepository.getTopRatedMovies().getOrThrow()
-                            }
+                            val movies = movieRepository.getMovies(
+                                _uiState.value.selectedCategory,
+                                forceRefresh = forceRefresh
+                            ).getOrThrow()
                             when (_uiState.value.selectedCategory) {
                                 MovieCategory.POPULAR -> Triple(movies, emptyList(), emptyList())
                                 MovieCategory.NOW_PLAYING -> Triple(emptyList(), movies, emptyList())
@@ -94,24 +131,43 @@ class HomeViewModel(
                     }
                 }
             }.onSuccess { (popular, nowPlaying, topRated) ->
+                val all = popular + nowPlaying + topRated
                 _uiState.update {
                     it.copy(
                         popular = popular,
                         nowPlaying = nowPlaying,
                         topRated = topRated,
+                        recommended = filterByGenre(all, it.favoriteGenre),
                         isLoading = false,
+                        isRefreshing = false,
                         errorMessage = null
                     )
                 }
-            }.onFailure {
+            }.onFailure { e ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Something went wrong. Please check your internet connection and try again."
+                        isRefreshing = false,
+                        errorMessage = e.toMovieMessage()
                     )
                 }
             }
         }
+    }
+
+    private fun hasDataFor(state: HomeUiState): Boolean = when (state.browseMode) {
+        BrowseMode.ALL_SECTIONS ->
+            state.popular.isNotEmpty() || state.nowPlaying.isNotEmpty() || state.topRated.isNotEmpty()
+        BrowseMode.SINGLE_CATEGORY -> when (state.selectedCategory) {
+            MovieCategory.POPULAR -> state.popular.isNotEmpty()
+            MovieCategory.NOW_PLAYING -> state.nowPlaying.isNotEmpty()
+            MovieCategory.TOP_RATED -> state.topRated.isNotEmpty()
+        }
+    }
+
+    private fun filterByGenre(movies: List<Movie>, genreName: String): List<Movie> {
+        val genreId = GenreNameToId[genreName] ?: return emptyList()
+        return movies.distinctBy { it.id }.filter { genreId in it.genreIds }.take(12)
     }
 
     companion object {
