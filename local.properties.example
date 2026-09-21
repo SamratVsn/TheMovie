@@ -1,0 +1,14 @@
+# Copy this file to `local.properties` and fill in your own values.
+# `local.properties` is git-ignored — never commit the real keys.
+#
+#   cp local.properties.example local.properties
+#
+# Option B (CI / headless builds): skip this file and provide the key via
+# Gradle property (~/.gradle/gradle.properties or -PTMDB_API_KEY=...)
+# or the TMDB_API_KEY environment variable instead.
+
+# Android SDK location (set automatically by Android Studio, keep your own path here)
+sdk.dir=/home/YOU/Android/Sdk
+
+# Your TMDB v3 API key (https://www.themoviedb.org/settings/api)
+TMDB_API_KEY=your_api_key_here

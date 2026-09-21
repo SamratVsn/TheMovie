@@ -54,11 +54,21 @@ class DetailViewModel(
 
     fun refresh() = loadDetail(forceRefresh = true)
 
+    private val _userMessage = MutableStateFlow<String?>(null)
+    val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
+
     fun toggleFavorite() {
         val detail = _uiState.value.movie ?: return
+        val wasFavorite = isFavorite.value
         viewModelScope.launch {
             watchlistRepository.toggle(detail.toMovie())
+            _userMessage.value =
+                if (wasFavorite) "Removed from favorites" else "Saved to favorites"
         }
+    }
+
+    fun consumeMessage() {
+        _userMessage.value = null
     }
 
     private fun loadDetail(forceRefresh: Boolean) {

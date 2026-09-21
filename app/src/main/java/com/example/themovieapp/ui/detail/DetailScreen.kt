@@ -24,7 +24,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -41,10 +43,15 @@ import com.example.themovieapp.ui.components.MoviePoster
 import com.example.themovieapp.ui.theme.Gold
 import java.util.Locale
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.draw.clip
@@ -63,6 +70,19 @@ fun DetailScreen(
     viewModel: DetailViewModel = viewModel(factory = DetailViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
+    val userMessage by viewModel.userMessage.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(userMessage) {
+        userMessage?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.consumeMessage()
+        }
+    }
 
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
@@ -115,6 +135,41 @@ fun DetailScreen(
                 contentDescription = stringResource(R.string.back),
                 tint = Color.White
             )
+        }
+        if (uiState.movie != null) {
+            IconButton(
+                onClick = viewModel::toggleFavorite,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .statusBarsPadding()
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.4f))
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.favorite),
+                    contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                    tint = if (isFavorite) Color(0xFFE53935) else Color.White
+                )
+            }
+        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 84.dp),
+            snackbar = { data ->
+                Snackbar(
+                    snackbarData = data,
+                    modifier = Modifier.shadow(8.dp, RoundedCornerShape(14.dp)),
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF1A1A1A),
+                    shape = RoundedCornerShape(14.dp)
+                )
+            }
+        )
         }
     }
 }

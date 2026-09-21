@@ -1,6 +1,10 @@
 *.iml
 .gradle
+# Local secrets — never commit the real values.
+# local.properties is machine-specific; google-services.json identifies
+# your Firebase project. Keep your copies locally (see local.properties.example).
 /local.properties
+google-services.json
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml

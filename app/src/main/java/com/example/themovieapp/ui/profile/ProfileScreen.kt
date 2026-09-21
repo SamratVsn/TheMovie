@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -64,16 +66,18 @@ private val AvatarSize = 96.dp
 @Composable
 fun ProfileScreen(
     onAuthClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
 ) {
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val authState by viewModel.authState.collectAsStateWithLifecycle()
 
-    val actions = remember(viewModel, onAuthClick) {
+    val actions = remember(viewModel, onAuthClick, onSettingsClick) {
         ProfileActions(
             onSignInClick = onAuthClick,
             onSignOutConfirmed = viewModel::signOut,
+            onSettingsClick = onSettingsClick,
         )
     }
 
@@ -89,6 +93,7 @@ fun ProfileScreen(
 data class ProfileActions(
     val onSignInClick: () -> Unit,
     val onSignOutConfirmed: () -> Unit,
+    val onSettingsClick: () -> Unit,
 )
 
 private fun resolveDisplayName(
@@ -111,6 +116,31 @@ fun ProfileScreenContent(
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Profile",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+                androidx.compose.material3.IconButton(onClick = actions.onSettingsClick) {
+                    Icon(
+                        painter = painterResource(R.drawable.settings),
+                        contentDescription = "Settings",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier

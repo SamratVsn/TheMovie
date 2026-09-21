@@ -25,7 +25,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -113,7 +116,9 @@ fun HomeScreen(
                             MovieCategory.TOP_RATED -> uiState.topRated
                         },
                         inlineError = uiState.errorMessage.takeIf { hasData },
+                        isLoadingMore = uiState.isLoadingMore,
                         onRetry = viewModel::retry,
+                        onLoadMore = viewModel::loadMore,
                         onMovieClick = onMovieClick
                     )
                 }
@@ -259,7 +264,9 @@ private fun MovieSection(
 private fun SingleCategoryGrid(
     movies: List<Movie>,
     inlineError: String?,
+    isLoadingMore: Boolean,
     onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
     onMovieClick: (Int) -> Unit
 ) {
     if (movies.isEmpty()) {
@@ -267,7 +274,21 @@ private fun SingleCategoryGrid(
         return
     }
 
+    val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val layout = gridState.layoutInfo
+            val total = layout.totalItemsCount
+            val lastVisible = layout.visibleItemsInfo.lastOrNull()?.index ?: 0
+            total > 0 && lastVisible >= total - 6
+        }
+    }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) onLoadMore()
+    }
+
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Adaptive(minSize = 140.dp),
         contentPadding = PaddingValues(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -284,6 +305,21 @@ private fun SingleCategoryGrid(
                 movie = movie,
                 onClick = { onMovieClick(movie.id) }
             )
+        }
+        if (isLoadingMore) {
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
         }
     }
 }

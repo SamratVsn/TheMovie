@@ -85,12 +85,17 @@ app/
     git clone https://github.com/SamratVsn/TheMovieApp.git
     ```
 2.  **Open in Android Studio**: Open the root folder of the project.
-3.  **Set up API Key**: Add your TMDB API Key to `local.properties`:
+3.  **Set up API Key**: copy the template and add your TMDB API Key (never commit the real file — `local.properties` is git-ignored):
+    ```bash
+    cp local.properties.example local.properties
+    ```
     ```properties
     TMDB_API_KEY=your_api_key_here
     ```
-4.  **Sync Gradle**: Wait for Android Studio to download dependencies and sync the project.
-5.  **Run the app**: Click the "Run" button or press `Shift + F10`.
+    Headless/CI builds can instead use `~/.gradle/gradle.properties`, `-PTMDB_API_KEY=...`, or the `TMDB_API_KEY` env var.
+4.  **Add Firebase config**: download `google-services.json` for package `com.example.themovieapp` from the Firebase Console and place it at `app/google-services.json` (also git-ignored — each developer/CI uses their own). The app won't build without it.
+5.  **Sync Gradle**: Wait for Android Studio to download dependencies and sync the project.
+6.  **Run the app**: Click the "Run" button or press `Shift + F10`.
 
 ---
 

@@ -31,6 +31,9 @@ data class HomeUiState(
     val browseMode: BrowseMode = BrowseMode.ALL_SECTIONS,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val canLoadMore: Boolean = true,
+    val page: Int = 1,
     val errorMessage: String? = null
 )
 
@@ -77,7 +80,9 @@ class HomeViewModel(
         _uiState.update {
             it.copy(
                 selectedCategory = category,
-                browseMode = BrowseMode.SINGLE_CATEGORY
+                browseMode = BrowseMode.SINGLE_CATEGORY,
+                page = 1,
+                canLoadMore = true
             )
         }
         loadHome(forceRefresh = false)
@@ -91,6 +96,43 @@ class HomeViewModel(
     fun retry() = loadHome(forceRefresh = true)
 
     fun refresh() = loadHome(forceRefresh = true)
+
+    fun loadMore() {
+        val state = _uiState.value
+        if (state.browseMode != BrowseMode.SINGLE_CATEGORY) return
+        if (state.isLoading || state.isLoadingMore || state.isRefreshing) return
+        if (!state.canLoadMore) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            movieRepository.getMovies(state.selectedCategory, page = state.page + 1)
+                .onSuccess { more ->
+                    _uiState.update {
+                        val merged = when (state.selectedCategory) {
+                            MovieCategory.POPULAR -> it.popular + more
+                            MovieCategory.NOW_PLAYING -> it.nowPlaying + more
+                            MovieCategory.TOP_RATED -> it.topRated + more
+                        }.distinctBy { m -> m.id }
+                        val (popular, nowPlaying, topRated) = when (state.selectedCategory) {
+                            MovieCategory.POPULAR -> Triple(merged, it.nowPlaying, it.topRated)
+                            MovieCategory.NOW_PLAYING -> Triple(it.popular, merged, it.topRated)
+                            MovieCategory.TOP_RATED -> Triple(it.popular, it.nowPlaying, merged)
+                        }
+                        it.copy(
+                            popular = popular,
+                            nowPlaying = nowPlaying,
+                            topRated = topRated,
+                            recommended = filterByGenre(popular + nowPlaying + topRated, it.favoriteGenre),
+                            page = state.page + 1,
+                            isLoadingMore = false,
+                            canLoadMore = more.size >= PAGE_SIZE
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingMore = false) }
+                }
+        }
+    }
 
     private fun loadHome(forceRefresh: Boolean) {
         viewModelScope.launch {
@@ -132,6 +174,11 @@ class HomeViewModel(
                 }
             }.onSuccess { (popular, nowPlaying, topRated) ->
                 val all = popular + nowPlaying + topRated
+                val singleList = when (_uiState.value.selectedCategory) {
+                    MovieCategory.POPULAR -> popular
+                    MovieCategory.NOW_PLAYING -> nowPlaying
+                    MovieCategory.TOP_RATED -> topRated
+                }
                 _uiState.update {
                     it.copy(
                         popular = popular,
@@ -140,7 +187,14 @@ class HomeViewModel(
                         recommended = filterByGenre(all, it.favoriteGenre),
                         isLoading = false,
                         isRefreshing = false,
-                        errorMessage = null
+                        errorMessage = null,
+                        page = 1,
+                        // All-sections shows curated rows; single category paginates
+                        canLoadMore = if (it.browseMode == BrowseMode.SINGLE_CATEGORY) {
+                            singleList.size >= PAGE_SIZE
+                        } else {
+                            true
+                        }
                     )
                 }
             }.onFailure { e ->
@@ -171,6 +225,7 @@ class HomeViewModel(
     }
 
     companion object {
+        private const val PAGE_SIZE = 20
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MovieApplication)

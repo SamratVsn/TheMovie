@@ -25,15 +25,15 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -131,40 +131,84 @@ fun SearchScreen(
                         subtitle = "Nothing matches \"${uiState.query.trim()}\""
                     )
 
-                    else -> Column(modifier = Modifier.fillMaxSize()) {
-                        if (uiState.errorMessage != null) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = uiState.errorMessage.orEmpty(),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                TextButton(onClick = viewModel::retry) {
-                                    Text("Retry")
-                                }
-                            }
-                        }
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = 140.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            items(uiState.movies, key = { it.id }) { movie ->
-                                MovieCard(
-                                    movie = movie,
-                                    onClick = { onMovieClick(movie.id) }
-                                )
-                            }
-                        }
+                    else -> SearchResultsGrid(
+                        uiState = uiState,
+                        onRetry = viewModel::retry,
+                        onLoadMore = viewModel::loadMore,
+                        onMovieClick = onMovieClick
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultsGrid(
+    uiState: SearchUiState,
+    onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
+    onMovieClick: (Int) -> Unit,
+) {
+    val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val layout = gridState.layoutInfo
+            val total = layout.totalItemsCount
+            val lastVisible = layout.visibleItemsInfo.lastOrNull()?.index ?: 0
+            total > 0 && lastVisible >= total - 6
+        }
+    }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) onLoadMore()
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (uiState.errorMessage != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = uiState.errorMessage.orEmpty(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = onRetry) {
+                    Text("Retry")
+                }
+            }
+        }
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Adaptive(minSize = 140.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(uiState.movies, key = { it.id }) { movie ->
+                MovieCard(
+                    movie = movie,
+                    onClick = { onMovieClick(movie.id) }
+                )
+            }
+            if (uiState.isLoadingMore) {
+                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            modifier = Modifier.size(28.dp),
+                            strokeWidth = 2.dp
+                        )
                     }
                 }
             }

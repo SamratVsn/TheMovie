@@ -24,6 +24,9 @@ data class SearchUiState(
     val hasSearched: Boolean = false,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val canLoadMore: Boolean = true,
+    val page: Int = 1,
     val errorMessage: String? = null
 )
 
@@ -41,7 +44,11 @@ class SearchViewModel(
         searchJob?.cancel()
         if (query.isBlank()) {
             _uiState.update {
-                it.copy(movies = emptyList(), hasSearched = false, isLoading = false, isRefreshing = false)
+                it.copy(
+                    movies = emptyList(), hasSearched = false,
+                    isLoading = false, isRefreshing = false,
+                    isLoadingMore = false, canLoadMore = true, page = 1
+                )
             }
             return
         }
@@ -66,6 +73,30 @@ class SearchViewModel(
         if (query.isNotBlank()) search(query, forceRefresh = true)
     }
 
+    fun loadMore() {
+        val state = _uiState.value
+        if (!state.hasSearched || state.query.isBlank()) return
+        if (state.isLoading || state.isLoadingMore || state.isRefreshing) return
+        if (!state.canLoadMore) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            movieRepository.searchMovies(state.query.trim(), page = state.page + 1)
+                .onSuccess { more ->
+                    _uiState.update {
+                        it.copy(
+                            movies = (it.movies + more).distinctBy { m -> m.id },
+                            page = state.page + 1,
+                            isLoadingMore = false,
+                            canLoadMore = more.size >= PAGE_SIZE
+                        )
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingMore = false) }
+                }
+        }
+    }
+
     private fun search(query: String, forceRefresh: Boolean) {
         // Search always hits network (results vary); forceRefresh only controls spinner style
         val hasData = _uiState.value.movies.isNotEmpty()
@@ -75,13 +106,19 @@ class SearchViewModel(
                     isLoading = !hasData,
                     isRefreshing = hasData && forceRefresh,
                     hasSearched = true,
-                    errorMessage = null
+                    errorMessage = null,
+                    page = 1,
+                    canLoadMore = true
                 )
             }
             movieRepository.searchMovies(query)
                 .onSuccess { movies ->
                     _uiState.update {
-                        it.copy(movies = movies, isLoading = false, isRefreshing = false, errorMessage = null)
+                        it.copy(
+                            movies = movies, isLoading = false, isRefreshing = false,
+                            errorMessage = null, page = 1,
+                            canLoadMore = movies.size >= PAGE_SIZE
+                        )
                     }
                 }
                 .onFailure { e ->
@@ -97,6 +134,7 @@ class SearchViewModel(
     }
 
     companion object {
+        private const val PAGE_SIZE = 20
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MovieApplication)

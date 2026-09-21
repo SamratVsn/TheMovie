@@ -24,6 +24,7 @@ import com.example.themovieapp.ui.home.HomeScreen
 import com.example.themovieapp.ui.profile.ProfileScreen
 import com.example.themovieapp.ui.search.SearchScreen
 import com.example.themovieapp.ui.settings.SettingsScreen
+import com.example.themovieapp.ui.watchlist.WatchlistScreen
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,9 +51,10 @@ import com.example.themovieapp.ui.profile.AuthScreen
 object Routes {
     const val HOME = "home"
     const val SEARCH = "search"
-    const val SETTINGS = "settings"
+    const val FAVORITES = "favorites"
     const val PROFILE = "profile"
 
+    const val SETTINGS = "settings"
     const val AUTH = "auth"
     const val DETAIL = "detail/{movieId}"
     //details of specific movie
@@ -70,7 +72,7 @@ private data class BottomDest(
 private val bottomDestinations = listOf(
     BottomDest(Routes.HOME, "Home", R.drawable.home),
     BottomDest(Routes.SEARCH, "Search", R.drawable.search),
-    BottomDest(Routes.SETTINGS, "Settings", R.drawable.settings),
+    BottomDest(Routes.FAVORITES, "Favorites", R.drawable.favorite),
     BottomDest(Routes.PROFILE, "Profile", R.drawable.profile)
 )
 
@@ -129,10 +131,18 @@ fun NavGraph(
                     onMovieClick = { movieId -> navController.navigate(Routes.detail(movieId)) }
                 )
             }
-            composable(Routes.SETTINGS) { SettingsScreen() }
+            composable(Routes.FAVORITES) {
+                WatchlistScreen(
+                    onMovieClick = { movieId -> navController.navigate(Routes.detail(movieId)) }
+                )
+            }
+            composable(Routes.SETTINGS) {
+                SettingsScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.PROFILE) {
                 ProfileScreen(
-                    onAuthClick = { navController.navigate(Routes.AUTH) }
+                    onAuthClick = { navController.navigate(Routes.AUTH) },
+                    onSettingsClick = { navController.navigate(Routes.SETTINGS) }
                 )
             }
             composable(Routes.AUTH) {

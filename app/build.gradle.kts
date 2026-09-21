@@ -29,7 +29,8 @@ android {
         }
         val tmdbApiKey = properties.getProperty("TMDB_API_KEY")
             ?: project.findProperty("TMDB_API_KEY") as? String
-            ?: error("TMDB_API_KEY is missing from local.properties or gradle.properties")
+            ?: System.getenv("TMDB_API_KEY")
+            ?: error("TMDB_API_KEY is missing. Add it to local.properties (see local.properties.example), ~/.gradle/gradle.properties, or the TMDB_API_KEY env var.")
 
         buildConfigField(
             "String",
@@ -69,7 +70,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui.graphics)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -78,15 +79,14 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    val nav_version = "2.9.8"
-    implementation("androidx.navigation:navigation-compose:$nav_version")
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation(libs.coil.compose)
+    implementation(libs.retrofit.kotlinx.serialization.converter)
+    implementation(libs.retrofit)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.navigation.compose)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
 }
