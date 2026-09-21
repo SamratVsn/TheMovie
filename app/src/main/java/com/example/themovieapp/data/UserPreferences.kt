@@ -19,3 +19,24 @@ data class UserPreferences(
     val bio: String = "I love discovering great films.",
     val favoriteGenre: String = "Action"
 )
+
+val FavoriteGenres = listOf(
+    "Action",
+    "Adventure",
+    "Animation",
+    "Comedy",
+    "Crime",
+    "Documentary",
+    "Drama",
+    "Family",
+    "Fantasy",
+    "History",
+    "Horror",
+    "Music",
+    "Mystery",
+    "Romance",
+    "Science Fiction",
+    "Thriller",
+    "War",
+    "Western",
+)

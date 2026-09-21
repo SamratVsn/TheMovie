@@ -8,6 +8,7 @@
     <string name="loading">Loading</string>
     <string name="try_again">Try Again</string>
     <string name="back">Back</string>
+    <string name="no_bio_yet">No bio yet</string>
     <string name="popular">Popular</string>
     <string name="now_playing">Now Playing</string>
     <string name="top_rated">Top Rated</string>
@@ -16,6 +17,8 @@
     <string name="theme">Theme</string>
     <string name="default_category">Default Category</string>
     <string name="edit">Edit Profile</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="auth">Login/Sign Up</string>
     <string name="no_empty_name">Name can\'t be empty</string>
     <string name="display_name">Display Name</string>
     <string name="bio">Bio</string>
@@ -33,4 +36,15 @@
     <string name="home">Home</string>
     <string name="default_movie">Default movie category</string>
     <string name="used_next">Used the next time you open the Home tab.</string>
+
+    <string name="guest_name">Guest User</string>
+    <string name="preferences">Preferences</string>
+    <string name="account">Account</string>
+    <string name="guest_title">Not signed in</string>
+    <string name="guest_body">Sign in to sync your watchlist and ratings across devices.</string>
+    <string name="sign_in">Sign In</string>
+    <string name="signed_in_as">Signed in as</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_out_confirm_title">Sign Out?</string>
+    <string name="sign_out_confirm_body">Are you sure you want to sign out?</string>
 </resources>

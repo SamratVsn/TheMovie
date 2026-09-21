@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.themovieapp.R
 import com.example.themovieapp.ui.detail.DetailScreen
 import com.example.themovieapp.ui.home.HomeScreen
@@ -43,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.themovieapp.ui.profile.AuthScreen
 
 //routes throughout the app
 object Routes {
@@ -50,6 +52,8 @@ object Routes {
     const val SEARCH = "search"
     const val SETTINGS = "settings"
     const val PROFILE = "profile"
+
+    const val AUTH = "auth"
     const val DETAIL = "detail/{movieId}"
     //details of specific movie
     fun detail(movieId: Int) = "detail/$movieId"
@@ -111,7 +115,12 @@ fun NavGraph(
             }
             composable(
                 route = Routes.DETAIL,
-                arguments = listOf(navArgument("movieId") { type = NavType.IntType })
+                arguments = listOf(navArgument("movieId") { type = NavType.IntType }),
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern = "themovieapp://detail/{movieId}"
+                    }
+                )
             ) {
                 DetailScreen(onBack = { navController.popBackStack() })
             }
@@ -121,7 +130,17 @@ fun NavGraph(
                 )
             }
             composable(Routes.SETTINGS) { SettingsScreen() }
-            composable(Routes.PROFILE) { ProfileScreen() }
+            composable(Routes.PROFILE) {
+                ProfileScreen(
+                    onAuthClick = { navController.navigate(Routes.AUTH) }
+                )
+            }
+            composable(Routes.AUTH) {
+                AuthScreen(
+                    onBack = { navController.popBackStack() },
+                    onSuccess = { navController.popBackStack() },
+                )
+            }
         }
     }
 }
