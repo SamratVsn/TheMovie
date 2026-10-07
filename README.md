@@ -1,68 +1,186 @@
 # 🎬 The Movie App
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.02.01-green.svg?style=flat&logo=android)](https://developer.android.com/jetpack/compose)
-[![Material 3](https://img.shields.io/badge/Material%203-1.4.0-red.svg?style=flat&logo=materialdesign)](https://m3.material.io)
-[![Firebase Auth](https://img.shields.io/badge/Firebase-Auth-orange.svg?style=flat&logo=firebase)](https://firebase.google.com/docs/auth)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-7F52FF?logo=kotlin\&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2026.02.01-4285F4?logo=jetpackcompose\&logoColor=white)
+![Material 3](https://img.shields.io/badge/Material%203-1.4.0-6750A4?logo=materialdesign\&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?logo=firebase\&logoColor=black)
+![Min SDK](https://img.shields.io/badge/Min%20SDK-24-3DDC84?logo=android\&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**The Movie App** is a modern Android application built with Jetpack Compose that leverages the TMDB API to showcase popular, now playing, and top-rated movies. It features a clean Material 3 design, Firebase Email/Password authentication, a persistent watchlist, personalized genre recommendations, offline caching, and user preference management using DataStore.
+**The Movie App** is a modern Android movie discovery application built with **Kotlin and Jetpack Compose**.
+
+Powered by the **TMDB API**, it lets users discover movies, search across the catalog, explore detailed information, save favorites, and receive personalized recommendations.
+
+The app also explores real-world Android concerns such as **authentication, pagination, caching, offline support, persistent preferences, error handling, and unidirectional data flow**.
+
+> **A movie discovery experience built to explore modern Android development beyond the basics.**
 
 ---
 
-## 📸 Screenshots
+## 📱 Screenshots
 
-| Home | Search | Movie Details | Profile |
-|------|--------|---------------|---------|
-| ![](Home.png) | ![](Search.png) | ![](Details.png) | ![](Profile.png) |
+<table>
+<tr>
+<td><img src="Home.png" alt="Home Screen" /></td>
+<td><img src="Search.png" alt="Search Screen" /></td>
+<td><img src="Details.png" alt="Movie Details" /></td>
+<td><img src="Profile.png" alt="Profile Screen" /></td>
+</tr>
+</table>
 
-| Settings |
-|----------|
-| ![](Settings.png) |
+<table>
+<tr>
+<td><img src="Settings.png" alt="Settings Screen" /></td>
+</tr>
+</table>
 
 ---
 
 ## ✨ Features
 
-*   **Browse Movies**: Explore Popular, Now Playing, and Top Rated sections, or drill into a single category grid.
-*   **Personalized Recommendations**: A "Because you like *X*" row built from your favorite genre.
-*   **Search**: Debounced live search across the TMDB database with infinite scrolling.
-*   **Movie Details**: Backdrops, posters, ratings, runtime, genres, and overview — with pull-to-refresh and offline fallback.
-*   **Favorites / Watchlist**: Tap the heart on any movie to save it. Saved and removed actions confirm via themed snackbars. The list persists across restarts.
-*   **Authentication**: Firebase Email/Password sign-up, login, password reset, and sign-out. Your signup name becomes your in-app display name and stays in sync with Firebase.
-*   **Profile**: Read-only overview (avatar initials, name, email, bio, preferences, account) with Settings one tap away in the top bar.
-*   **Settings**: Edit display name, bio, and favorite genre (genre is picked from the official TMDB list, not free text), plus theme mode and default category.
-*   **Offline Support**: 10 MB HTTP disk cache + 5-minute in-memory repository cache with stale-data fallback, so cached movies still open with no connection.
-*   **Smart States**: Pull-to-refresh everywhere, pagination spinners, inline retry banners that preserve loaded content, and specific error messages (no internet, timeout, invalid API key, rate limits).
-*   **Material 3 UI**: Edge-to-edge layout with proper status-bar insets, dark/light/system themes, and adaptive launcher icon.
-*   **Image Loading**: High-quality poster/backdrop rendering with Coil, including loading and error placeholders.
+### 🎬 Movie Discovery
+
+* Browse **Popular**, **Now Playing**, and **Top Rated** movies
+* Explore movies by category
+* View detailed movie information including:
+
+  * Posters and backdrops
+  * Ratings
+  * Runtime
+  * Genres
+  * Overview
+
+### 🔎 Search & Pagination
+
+* Debounced live movie search
+* Infinite scrolling through search results
+* Loading states and pagination indicators
+* Retry support without losing already-loaded content
+
+### ❤️ Favorites & Watchlist
+
+* Save movies to a personal watchlist
+* Persist favorites across app restarts
+* Add/remove feedback through Material 3 snackbars
+
+### 🧠 Personalized Recommendations
+
+* Select a favorite genre
+* Generate a **"Because you like..."** recommendation section
+* Genre selection uses TMDB's official genre catalog
+
+### 🔐 Authentication
+
+Firebase Email/Password authentication with:
+
+* Account creation
+* Login
+* Password reset
+* Sign-out
+* Persistent authentication state
+* Profile name synchronization
+
+### 👤 Profile & Settings
+
+* Personalized display name
+* Custom bio
+* Favorite genre
+* Theme preferences
+* Default movie category
+* Account information
+
+### 📡 Offline & Network Resilience
+
+The app is designed to remain useful when connectivity is unreliable:
+
+* HTTP disk caching
+* In-memory repository caching
+* Stale-data fallback
+* Cached movie details remain accessible offline
+* Network-specific error handling
+* Timeout and rate-limit handling
+* Invalid API key detection
+
+### 🎨 Material 3 UI
+
+* Jetpack Compose UI
+* Material 3 components
+* Light, dark, and system themes
+* Edge-to-edge layout
+* Adaptive launcher icon
+* Loading and error states
+* High-quality image rendering with Coil
 
 ---
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
-*   **Kotlin**: Primary programming language.
-*   **Jetpack Compose**: Modern toolkit for building native UI.
-*   **Material 3**: Latest version of Google's open-source design system.
-*   **Navigation Compose**: Declarative navigation for Compose.
-*   **Retrofit & OkHttp**: Networking and API interaction (with disk cache, timeouts, and debug-only logging).
-*   **Kotlinx Serialization**: Type-safe JSON parsing.
-*   **Firebase Authentication**: Email/Password sign-up, login, and session management.
-*   **Coil**: Image loading library for Android.
-*   **DataStore Preferences**: Reactive storage for user preferences and the watchlist.
-*   **ViewModel**: Architecture component to store and manage UI-related data.
-*   **Coroutines & Flow**: Asynchronous programming and reactive data streams.
+| Area                  | Technology                |
+| --------------------- | ------------------------- |
+| **Language**          | Kotlin 2.2.10             |
+| **UI**                | Jetpack Compose           |
+| **Design System**     | Material 3                |
+| **Architecture**      | MVVM + Repository Pattern |
+| **Navigation**        | Navigation Compose        |
+| **Networking**        | Retrofit + OkHttp         |
+| **Serialization**     | Kotlinx Serialization     |
+| **Authentication**    | Firebase Authentication   |
+| **Image Loading**     | Coil                      |
+| **Local Persistence** | DataStore Preferences     |
+| **State**             | ViewModel + StateFlow     |
+| **Async**             | Kotlin Coroutines + Flow  |
+| **Minimum SDK**       | Android 7.0 / API 24      |
+
+### Core Android Technologies
+
+`Kotlin` · `Jetpack Compose` · `Material 3` · `MVVM` · `Retrofit` · `OkHttp` · `Firebase` · `DataStore` · `ViewModel` · `StateFlow` · `Coroutines` · `Coil`
 
 ---
 
-## 🏛 Architecture
+## 🏗️ Architecture
 
-The project follows the recommended **MVVM (Model-View-ViewModel)** architecture and the **Repository Pattern** to ensure a clean separation of concerns and maintainability.
+The Movie App follows **MVVM**, the **Repository Pattern**, and **unidirectional data flow**.
 
-*   **Single Activity Architecture**: The entire app runs within a single `MainActivity`.
-*   **Navigation Compose**: Bottom-bar destinations (Home, Search, Favorites, Profile) plus detail, auth, and settings routes via `NavGraph`.
-*   **Manual DI**: Repositories (`MovieRepository`, `PreferencesRepository`, `WatchlistRepository`, `AuthRepository`) are provisioned by `MovieApplication` and injected through ViewModel factories.
-*   **Unidirectional Data Flow**: ViewModels expose `StateFlow` UI state; screens render it and forward events back.
+```text
+┌─────────────────────────────────┐
+│          Compose UI             │
+│ Home · Search · Details · etc.  │
+└───────────────┬─────────────────┘
+                │ UI Events
+                ▼
+┌─────────────────────────────────┐
+│           ViewModels            │
+│        StateFlow · UI State     │
+└───────────────┬─────────────────┘
+                │
+                ▼
+┌─────────────────────────────────┐
+│           Repositories          │
+│ Movie · Auth · Preferences      │
+│ Watchlist                       │
+└───────┬──────────────┬──────────┘
+        │              │
+        ▼              ▼
+┌──────────────┐  ┌───────────────┐
+│ TMDB / API   │  │ Local Storage │
+│ Retrofit     │  │ DataStore     │
+│ OkHttp       │  │ Cache         │
+└──────────────┘  └───────────────┘
+        │
+        ▼
+┌──────────────────┐
+│ Firebase Auth    │
+└──────────────────┘
+```
+
+### Architecture Highlights
+
+* **Single-Activity Architecture:** The application runs through a single `MainActivity`.
+* **Compose Navigation:** Navigation Compose manages authentication, bottom-navigation destinations, movie details, and settings.
+* **Repository Layer:** API, authentication, preferences, and watchlist operations are abstracted behind repositories.
+* **Unidirectional Data Flow:** ViewModels expose `StateFlow` state while UI events flow back through ViewModel actions.
+* **Manual Dependency Injection:** Application-level dependencies are provided through `MovieApplication` and ViewModel factories.
+* **Caching:** Network responses are supported by HTTP disk caching and repository-level in-memory caching.
 
 ---
 
@@ -71,120 +189,180 @@ The project follows the recommended **MVVM (Model-View-ViewModel)** architecture
 ```text
 app/
 ├── data/
-│   ├── auth/                # AuthRepository, AuthState (Firebase session flow)
-│   ├── MovieRepository.kt   # TMDB access + 5-min in-memory cache
-│   ├── PreferencesRepository.kt  # Theme, category, profile (DataStore)
-│   ├── WatchlistRepository.kt    # Favorites list (DataStore JSON)
-│   ├── MovieErrors.kt       # HTTP/network → user-friendly messages
-│   └── UserPreferences.kt   # ThemeMode, MovieCategory, genre lists
-├── model/                   # Movie / MovieDetail / Genre DTOs
-├── network/                 # Retrofit service, OkHttp client, image URLs
+│   ├── auth/
+│   │   ├── AuthRepository.kt
+│   │   └── AuthState.kt
+│   ├── MovieRepository.kt
+│   ├── PreferencesRepository.kt
+│   ├── WatchlistRepository.kt
+│   ├── MovieErrors.kt
+│   └── UserPreferences.kt
+│
+├── model/
+│   └── Movie / MovieDetail / Genre models
+│
+├── network/
+│   ├── Retrofit service
+│   ├── OkHttp client
+│   └── image configuration
+│
 ├── ui/
-│   ├── components/          # MovieCard, posters, loading/error screens
-│   ├── detail/              # Movie detail + favorite toggle + snackbars
-│   ├── home/                # Home, recommendations, pagination
-│   ├── profile/             # Profile display + Auth (login/signup) screens
-│   ├── search/              # Search with debounce + pagination
-│   ├── settings/            # Profile editing, appearance, about
-│   ├── watchlist/           # Favorites screen
-│   ├── theme/               # Color, Type, and Theme definitions
-│   └── NavGraph.kt          # All routes + bottom bar
-├── MainActivity.kt          # Entry point of the application
-└── MovieApplication.kt      # DI provisioning + network init
+│   ├── components/
+│   ├── detail/
+│   ├── home/
+│   ├── profile/
+│   ├── search/
+│   ├── settings/
+│   ├── watchlist/
+│   ├── theme/
+│   └── NavGraph.kt
+│
+├── MainActivity.kt
+└── MovieApplication.kt
 ```
 
 ---
 
-## 🚀 Installation
+## 🚀 Getting Started
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/SamratVsn/TheMovieApp.git
-    ```
-2.  **Open in Android Studio**: Open the root folder of the project.
-3.  **Set up API Key**: copy the template and add your TMDB API Key (never commit the real file — `local.properties` is git-ignored):
-    ```bash
-    cp local.properties.example local.properties
-    ```
-    ```properties
-    TMDB_API_KEY=your_api_key_here
-    ```
-    Headless/CI builds can instead use `~/.gradle/gradle.properties`, `-PTMDB_API_KEY=...`, or the `TMDB_API_KEY` env var.
-4.  **Add Firebase config**: download `google-services.json` for package `com.example.themovieapp` from the Firebase Console (with Email/Password sign-in enabled) and place it at `app/google-services.json` (also git-ignored — each developer/CI uses their own). The app won't build without it.
-5.  **Sync Gradle**: Wait for Android Studio to download dependencies and sync the project.
-6.  **Run the app**: Click the "Run" button or press `Shift + F10`.
+### Requirements
+
+* **Android Studio** Ladybug or newer
+* JDK compatible with the project's Android Gradle Plugin
+* Android device or emulator running **Android 7.0 / API 24+**
+* TMDB API key
+* Firebase project with Email/Password authentication enabled
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/SamratVsn/TheMovieApp.git
+cd TheMovieApp
+```
+
+### 2. Configure the TMDB API
+
+Create `local.properties` from the provided template:
+
+```bash
+cp local.properties.example local.properties
+```
+
+Then add your API key:
+
+```properties
+TMDB_API_KEY=your_api_key_here
+```
+
+The real API key should **never be committed** to the repository.
+
+For CI/headless builds, the project also supports:
+
+```text
+~/.gradle/gradle.properties
+-PTMDB_API_KEY=...
+TMDB_API_KEY environment variable
+```
+
+### 3. Configure Firebase
+
+Create a Firebase project and enable **Email/Password Authentication**.
+
+Download `google-services.json` for:
+
+```text
+com.example.themovieapp
+```
+
+and place it at:
+
+```text
+app/google-services.json
+```
+
+This file is git-ignored and should not be committed.
+
+### 4. Build & Run
+
+Open the project in Android Studio, allow Gradle to sync, and run the application on an emulator or physical device.
+
+---
+
+## 🔐 Security Notes
+
+* `local.properties` is git-ignored and should contain your TMDB API key.
+* `google-services.json` is also git-ignored.
+* Firebase client configuration is not equivalent to a private secret, but appropriate package and SHA restrictions should still be configured.
+* A truly private API key cannot be protected inside a distributed APK. For stronger protection, a backend proxy can be used.
 
 ---
 
 ## 📋 Requirements
 
-*   **Minimum SDK**: 24
-*   **Target SDK**: 37
-*   **Compile SDK**: 37
-*   **Kotlin Version**: 2.2.10
-*   **AGP Version**: 9.4.1
+| Requirement           | Version    |
+| --------------------- | ---------- |
+| Minimum SDK           | 24         |
+| Target SDK            | 37         |
+| Compile SDK           | 37         |
+| Kotlin                | 2.2.10     |
+| Android Gradle Plugin | 9.4.1      |
+| Compose BOM           | 2026.02.01 |
+| Material 3            | 1.4.0      |
+| Navigation Compose    | 2.9.8      |
 
 ---
 
-## 📦 Libraries Used
+## 📦 Key Libraries
 
-| Library | Purpose |
-| ------- | ------- |
-| `androidx.compose` (BOM `2026.02.01`) | UI Toolkit |
-| `androidx.compose.material3` (`1.4.0`) | Material 3 components |
-| `androidx.navigation:navigation-compose` (`2.9.8`) | App Navigation |
-| `com.squareup.retrofit2:retrofit` (`2.9.0`) | API Requests |
-| `com.squareup.okhttp3` (`4.11.0`) | HTTP client, cache, timeouts |
-| `okhttp3:logging-interceptor` | Network debugging (debug builds only) |
-| `io.coil-kt:coil-compose` (`2.4.0`) | Image Loading |
-| `androidx.datastore:datastore-preferences` | Local Persistence |
-| `org.jetbrains.kotlinx:kotlinx-serialization-json` (`1.6.0`) | Data Parsing |
-| `com.google.firebase:firebase-bom` (`33.1.2`) + `firebase-auth` | Authentication backend |
-| `org.jetbrains.kotlinx:kotlinx-coroutines-play-services` | `Task.await()` bridges for Firebase |
-| `androidx.lifecycle` (runtime, viewmodel) | ViewModels + lifecycle-aware state |
-
----
-
-## 🔐 Secrets & Security Notes
-
-*   `local.properties` (TMDB key) and `app/google-services.json` (Firebase config) are git-ignored — see `local.properties.example` for the template.
-*   The Firebase client key is a public identifier, not a private secret: protect it with package/SHA-1 restrictions in the Google Cloud Console and consider enabling App Check.
-*   A truly private key can't live in a shipped APK — for stronger secrecy, proxy TMDB through your own backend later.
+| Library                 | Purpose                               |
+| ----------------------- | ------------------------------------- |
+| Jetpack Compose         | Native Android UI                     |
+| Material 3              | Design system                         |
+| Navigation Compose      | Application navigation                |
+| Retrofit                | TMDB API communication                |
+| OkHttp                  | HTTP client, caching & timeouts       |
+| Kotlinx Serialization   | JSON serialization                    |
+| Firebase Authentication | User authentication                   |
+| Coil                    | Poster and backdrop loading           |
+| DataStore               | Local preferences & watchlist         |
+| Coroutines & Flow       | Asynchronous and reactive programming |
+| AndroidX Lifecycle      | ViewModel & lifecycle-aware state     |
 
 ---
 
-## 🔮 Future Improvements
+## 🔮 Roadmap
 
-*   **Trailer Integration**: Embed YouTube players to watch movie trailers.
-*   **Cloud-synced Watchlist**: Sync favorites per user via Firestore instead of local-only storage.
-*   **Google Sign-In & Email Verification**: More auth providers plus verified-email gating.
-*   **Paging 3**: Migrate manual pagination to the Paging library with Room caching.
-*   **Push Notifications**: Notify users about new releases or updates to their watchlist.
-*   **Release Hardening**: R8/minify,expanded tests, and App Check enforcement.
+* 🎞️ Trailer integration
+* ☁️ Cloud-synchronized watchlists
+* 🔑 Google Sign-In & email verification
+* 📄 Paging 3 migration
+* 🔔 Push notifications
+* 🛡️ Release hardening with R8/minification
+* 🧪 Expanded automated test coverage
+* 🔐 Firebase App Check enforcement
+
+---
+
+## 👨‍💻 Author
+
+**Samrat Parajuli**
+
+Android Developer focused on **Kotlin, Jetpack Compose, and modern Android development**.
+
+* GitHub: [@SamratVsn](https://github.com/SamratVsn)
+* Portfolio: [samratparajuli0.com.np](https://www.samratparajuli0.com.np/)
+* LinkedIn: [Samrat Parajuli](https://linkedin.com/in/samratvsn)
 
 ---
 
 ## 📄 License
 
-```text
-MIT License
-
-Copyright (c) 2026 Samrat Parajuli
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions...
-```
+This project is licensed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 ---
 
-## 👤 Author
+<div align="center">
 
-**Samrat Parajuli**
+**Built with Kotlin & Jetpack Compose 🎬**
 
-*   **Portfolio**: [samratparajuli0.com.np](https://www.samratparajuli0.com.np/)
-*   **GitHub**: [@SamratVsn](https://github.com/SamratVsn)
-*   **LinkedIn**: [samratvsn](https://linkedin.com/in/samratvsn)
+</div>
